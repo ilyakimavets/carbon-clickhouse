@@ -31,6 +31,7 @@ type clickhouseConfig struct {
 
 type udpConfig struct {
 	Listen        string           `toml:"listen"`
+	Listeners     []string         `toml:"listeners"`
 	Enabled       bool             `toml:"enabled"`
 	LogIncomplete bool             `toml:"log-incomplete"`
 	DropFuture    *config.Duration `toml:"drop-future"`
@@ -39,6 +40,7 @@ type udpConfig struct {
 
 type tcpConfig struct {
 	Listen      string           `toml:"listen"`
+	Listeners   []string         `toml:"listeners"`
 	Enabled     bool             `toml:"enabled"`
 	DropFuture  *config.Duration `toml:"drop-future"`
 	DropPast    *config.Duration `toml:"drop-past"`
@@ -47,6 +49,7 @@ type tcpConfig struct {
 
 type pickleConfig struct {
 	Listen     string           `toml:"listen"`
+	Listeners  []string         `toml:"listeners"`
 	Enabled    bool             `toml:"enabled"`
 	DropFuture *config.Duration `toml:"drop-future"`
 	DropPast   *config.Duration `toml:"drop-past"`
@@ -125,6 +128,7 @@ func NewConfig() *Config {
 		},
 		Udp: udpConfig{
 			Listen:        ":2003",
+			Listeners:     []string{},
 			Enabled:       true,
 			LogIncomplete: false,
 			DropFuture:    &config.Duration{},
@@ -132,6 +136,7 @@ func NewConfig() *Config {
 		},
 		Tcp: tcpConfig{
 			Listen:     ":2003",
+			Listeners:  []string{},
 			Enabled:    true,
 			DropFuture: &config.Duration{},
 			DropPast:   &config.Duration{},
@@ -141,6 +146,7 @@ func NewConfig() *Config {
 		},
 		Pickle: pickleConfig{
 			Listen:     ":2004",
+			Listeners:  []string{},
 			Enabled:    true,
 			DropFuture: &config.Duration{},
 			DropPast:   &config.Duration{},

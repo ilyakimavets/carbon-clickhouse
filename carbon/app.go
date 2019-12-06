@@ -246,55 +246,113 @@ func (app *App) Start() (err error) {
 
 	/* RECEIVER start */
 	if conf.Tcp.Enabled {
-		app.TCP, err = receiver.New(
-			"tcp://"+conf.Tcp.Listen,
-			app.Config.TagDesc,
-			receiver.ParseThreads(runtime.GOMAXPROCS(-1)*2),
-			receiver.WriteChan(app.writeChan),
-			receiver.DropFuture(uint32(conf.Tcp.DropFuture.Value().Seconds())),
-			receiver.DropPast(uint32(conf.Tcp.DropPast.Value().Seconds())),
-			receiver.ReadTimeout(uint32(conf.Tcp.ReadTimeout.Value().Seconds())),
-		)
+		if len(conf.Tcp.Listeners) > 0 {
+			for index, value := range conf.Tcp.Listeners {
+				app.TCP, err = receiver.New(
+					"tcp://"+value,
+					app.Config.TagDesc,
+					receiver.ParseThreads(runtime.GOMAXPROCS(-1)*2),
+					receiver.WriteChan(app.writeChan),
+					receiver.DropFuture(uint32(conf.Tcp.DropFuture.Value().Seconds())),
+					receiver.DropPast(uint32(conf.Tcp.DropPast.Value().Seconds())),
+					receiver.ReadTimeout(uint32(conf.Tcp.ReadTimeout.Value().Seconds())),
+				)
 
-		if err != nil {
-			return
+				if err != nil {
+					return
+				}
+
+				http.HandleFunc(fmt.Sprintf("/debug/receive/tcp%d/dropped/", index), app.TCP.DroppedHandler)
+			}
 		}
+		if len(conf.Tcp.Listen) > 0 {
+			app.TCP, err = receiver.New(
+				"tcp://"+conf.Tcp.Listen,
+				app.Config.TagDesc,
+				receiver.ParseThreads(runtime.GOMAXPROCS(-1)*2),
+				receiver.WriteChan(app.writeChan),
+				receiver.DropFuture(uint32(conf.Tcp.DropFuture.Value().Seconds())),
+				receiver.DropPast(uint32(conf.Tcp.DropPast.Value().Seconds())),
+				receiver.ReadTimeout(uint32(conf.Tcp.ReadTimeout.Value().Seconds())),
+			)
+			if err != nil {
+				return
+			}
 
-		http.HandleFunc("/debug/receive/tcp/dropped/", app.TCP.DroppedHandler)
+			http.HandleFunc("/debug/receive/tcp/dropped/", app.TCP.DroppedHandler)
+		}
 	}
 
 	if conf.Udp.Enabled {
-		app.UDP, err = receiver.New(
-			"udp://"+conf.Udp.Listen,
-			app.Config.TagDesc,
-			receiver.ParseThreads(runtime.GOMAXPROCS(-1)*2),
-			receiver.WriteChan(app.writeChan),
-			receiver.DropFuture(uint32(conf.Udp.DropFuture.Value().Seconds())),
-			receiver.DropPast(uint32(conf.Udp.DropPast.Value().Seconds())),
-		)
+		if len(conf.Udp.Listeners) > 0 {
+			for index, value := range conf.Udp.Listeners {
+				app.UDP, err = receiver.New(
+					"udp://"+value,
+					app.Config.TagDesc,
+					receiver.ParseThreads(runtime.GOMAXPROCS(-1)*2),
+					receiver.WriteChan(app.writeChan),
+					receiver.DropFuture(uint32(conf.Udp.DropFuture.Value().Seconds())),
+					receiver.DropPast(uint32(conf.Udp.DropPast.Value().Seconds())),
+				)
 
-		if err != nil {
-			return
+				if err != nil {
+					return
+				}
+				http.HandleFunc(fmt.Sprintf("/debug/receive/udp%d/dropped/", index), app.UDP.DroppedHandler)
+			}
 		}
+		if len(conf.Udp.Listen) > 1 {
+			app.UDP, err = receiver.New(
+				"udp://"+conf.Udp.Listen,
+				app.Config.TagDesc,
+				receiver.ParseThreads(runtime.GOMAXPROCS(-1)*2),
+				receiver.WriteChan(app.writeChan),
+				receiver.DropFuture(uint32(conf.Udp.DropFuture.Value().Seconds())),
+				receiver.DropPast(uint32(conf.Udp.DropPast.Value().Seconds())),
+			)
 
-		http.HandleFunc("/debug/receive/udp/dropped/", app.UDP.DroppedHandler)
+			if err != nil {
+				return
+			}
+			http.HandleFunc("/debug/receive/udp/dropped/", app.UDP.DroppedHandler)
+		}
 	}
 
 	if conf.Pickle.Enabled {
-		app.Pickle, err = receiver.New(
-			"pickle://"+conf.Pickle.Listen,
-			app.Config.TagDesc,
-			receiver.ParseThreads(runtime.GOMAXPROCS(-1)*2),
-			receiver.WriteChan(app.writeChan),
-			receiver.DropFuture(uint32(conf.Pickle.DropFuture.Value().Seconds())),
-			receiver.DropPast(uint32(conf.Pickle.DropPast.Value().Seconds())),
-		)
+		if len(conf.Pickle.Listeners) > 0 {
+			for index, value := range conf.Udp.Listeners {
 
-		if err != nil {
-			return
+				app.Pickle, err = receiver.New(
+					"pickle://"+value,
+					app.Config.TagDesc,
+					receiver.ParseThreads(runtime.GOMAXPROCS(-1)*2),
+					receiver.WriteChan(app.writeChan),
+					receiver.DropFuture(uint32(conf.Pickle.DropFuture.Value().Seconds())),
+					receiver.DropPast(uint32(conf.Pickle.DropPast.Value().Seconds())),
+				)
+
+				if err != nil {
+					return
+				}
+
+				http.HandleFunc(fmt.Sprintf("/debug/receive/pickle%d/dropped/", index), app.Pickle.DroppedHandler)
+			}
 		}
+		if len(conf.Pickle.Listen) > 0 {
+			app.Pickle, err = receiver.New(
+				"pickle://"+conf.Pickle.Listen,
+				app.Config.TagDesc,
+				receiver.ParseThreads(runtime.GOMAXPROCS(-1)*2),
+				receiver.WriteChan(app.writeChan),
+				receiver.DropFuture(uint32(conf.Pickle.DropFuture.Value().Seconds())),
+				receiver.DropPast(uint32(conf.Pickle.DropPast.Value().Seconds())),
+			)
 
-		http.HandleFunc("/debug/receive/pickle/dropped/", app.Pickle.DroppedHandler)
+			if err != nil {
+				return
+			}
+			http.HandleFunc("/debug/receive/pickle/dropped/", app.Pickle.DroppedHandler)
+		}
 	}
 
 	if conf.Grpc.Enabled {
